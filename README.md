@@ -19,5 +19,5 @@ El código está estructurado siguiendo el patrón de diseño **MVC (Modelo-Vist
 ## 👨‍💻 Autores
 
 * **Nicolás Homero Fresca**
-* **Juan Cruz Roca**
+* **Juan Cruz Rocca**
 * **Facundo Burguez**
