@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Image;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import modelo.Enemigo;
 
 public class ImagenEnemigo extends ImagenObjetoJuego {

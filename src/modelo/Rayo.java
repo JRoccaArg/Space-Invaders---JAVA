@@ -4,131 +4,73 @@ import java.util.ArrayList;
 import vista.ImagenObjetoJuego;
 
 public class Rayo extends ObjetoJuegoActualizable {
-    private final Espacio espacio;
-    private final ArrayList<Muro> listaMuros;
-    private final boolean disparoNave;
-    private final boolean disparoEnemigo;
+    private Espacio espacio;
+    private ArrayList<Muro> listaMuros;
 
-    public Rayo(int x, int y, Observador observador, int anchoEspacio, int altoEspacio, Espacio espacio, ArrayList<Muro> listaMuros, boolean disparoNave, boolean disparoEnemigo) {
+    public Rayo(int x, int y, Observador observador, int anchoEspacio, int altoEspacio, Espacio espacio, ArrayList<Muro> listaMuros) {
         super(x, y, 10, observador, anchoEspacio, altoEspacio);
         this.espacio = espacio;
         this.listaMuros = listaMuros;
-        this.disparoNave = disparoNave;
-        this.disparoEnemigo = disparoEnemigo;
-        setPaso(10);
     }
 
     @Override
     public void actualizarPosicion() {
-        if (getObservador()!=null) {
-    	if (seSaleDePantalla()) {
+        if (seSaleDePantalla() || tocaMuro() || tocaEnemigo()) {
             eliminarRayo();
-            return;
-        }
-        if (tocaAlgo()) {
-            eliminarRayo();
-            return;
-        }
-        mover();
-    }
-    }
-    private void mover() {
-        if (disparoNave) {
+        } else {
             moverArriba();
-        } else {
-            if (disparoEnemigo) {
-                moverAbajo();
-            }
         }
     }
 
-    private boolean seSaleDePantalla() {
+    public boolean seSaleDePantalla() {
         int y = getY();
-        int altoRayo;
-        if (getObservador() != null) {
-            altoRayo = getObservador().getAlto();
-        } else {
-            altoRayo = 12;
-        }
-        if (disparoNave) {
-            if (y + altoRayo <= 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            if (disparoEnemigo && y >= getAltoEspacio()) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    private boolean tocaAlgo() {
-        int rayoAncho;
-        rayoAncho = getObservador().getAncho();
-        int rayoAlto;
-        rayoAlto = getObservador().getAlto();
-        
-        for (Muro muro : listaMuros) {
-            if (muro.toca(getX(), getY(), rayoAlto, rayoAncho)) {
-                if (disparoNave) {
-                    muro.recibirDanioNave();
-                } else {
-                    if (disparoEnemigo) {
-                        muro.recibirDanioEnemigo();
-                    }
-                }
-                return true;
-            }
-        }
-        if (disparoNave) {
-            for (Enemigo enemigo : espacio.getEnemigos()) {
-                if (enemigo.estaVivo() && enemigo.toca(getX(), getY(), rayoAlto, rayoAncho)) {
-                    enemigo.recibirDanio(enemigo.danioANave);
-                    return true;
-                }
-            }
-        }
-        if (disparoEnemigo) {
-            NaveJugador nave = espacio.getNaveJugador();
-            if (nave != null) {
-                int nw;
-                if (nave.getObservador() != null) {
-                    nw = nave.getObservador().getAncho();
-                } else {
-                    nw = 64;
-                }
-                int nh;
-                if (nave.getObservador() != null) {
-                    nh = nave.getObservador().getAlto();
-                } else {
-                    nh = 64;
-                }
-                boolean col = colisionaRect(getX(), getY(), rayoAncho, rayoAlto, nave.getX(), nave.getY(), nw, nh);
-                if (col) {
-                    nave.recibirDanio();
-                    return true;
-                }
-            }
-        }
-        return false;
+        int yMin = 0;
+        int altoDelRayo = ((ImagenObjetoJuego) getObservador()).getAlto();
+        return (altoDelRayo + y) <= yMin;
     }
 
     private void eliminarRayo() {
-        espacio.quitarObjeto(this);
-        if (disparoNave && espacio.getJuegoController() != null) {
+        if (espacio.getJuegoController() != null) {
             espacio.getJuegoController().setNavePuedeDisparar(true);
         }
-        if (getObservador() instanceof javax.swing.JLabel imagen) {
+        espacio.quitarObjeto(this);
+        javax.swing.JLabel imagen = (javax.swing.JLabel) getObservador();
+        if (imagen != null) {
             java.awt.Container parent = imagen.getParent();
             if (parent != null) {
                 parent.remove(imagen);
                 parent.revalidate();
                 parent.repaint();
             }
+            setObservador(null);
         }
-        setObservador(null);
+    }
+
+    private boolean tocaMuro() {
+        int anchoRayo = ((ImagenObjetoJuego) getObservador()).getAncho();
+        int altoRayo  = ((ImagenObjetoJuego) getObservador()).getAlto();
+        for (Muro muro : listaMuros) {
+            if (muro.toca(getX(), getY(), altoRayo, anchoRayo)) {
+                muro.recibirDanioNave();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean tocaEnemigo() {
+        int anchoRayo = ((ImagenObjetoJuego) getObservador()).getAncho();
+        int altoRayo  = ((ImagenObjetoJuego) getObservador()).getAlto();
+        int rx1 = getX(), ry1 = getY(), rx2 = rx1 + anchoRayo, ry2 = ry1 + altoRayo;
+
+        for (Enemigo e : new ArrayList<>(espacio.getEnemigos())) {
+            int ex1 = e.getX(), ey1 = e.getY(), ex2 = ex1 + e.getW(), ey2 = ey1 + e.getH();
+            boolean colision = rx1 < ex2 && rx2 > ex1 && ry1 < ey2 && ry2 > ey1;
+            if (colision) {
+                e.recibirDanioNave();
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -39,7 +39,18 @@ public class Muro extends ObjetoJuego {
 	
 	public void eliminarMuro() {
 		espacio.quitarMuro(this);
-		quitarImagen();
+		
+		javax.swing.JLabel imagen = (javax.swing.JLabel) getObservador(); // Quitar imagen del panel
+	    if (imagen != null) {
+	        java.awt.Container parent = imagen.getParent();  // <-- guardar referencia
+	        if (parent != null) {
+	            parent.remove(imagen);
+	            parent.revalidate();
+	            parent.repaint();
+	    }
+	    
+		setObservador(null);
+	    }
 	}
 	
 	public boolean toca(int x, int y, int altoRayo, int anchoRayo) {

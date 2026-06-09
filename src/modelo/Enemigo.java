@@ -1,69 +1,44 @@
 package modelo;
 
-public class Enemigo extends ObjetoJuegoActualizable {
-    private int vida = 1;
+import java.awt.Rectangle;
+
+public class Enemigo {
+    private int x, y, w, h;
+    private float vidaInicial = 100f;
+    private float vidaActual = vidaInicial;
+    private float danioNave = 1.0f; // % de daño
     private boolean vivo = true;
-    private final Espacio espacio;
-    private final int w;
-    private final int h;
-    public static final int danioANave = 1;
+    private Espacio espacio;
 
-    public Enemigo(int x, int y, int spriteW, int spriteH, Espacio espacio) {
-        super(x, y, 0, null, espacio.getAncho(), espacio.getAlto());
-        this.espacio = espacio;
-        this.w = spriteW;
-        this.h = spriteH;
+    public Enemigo(int x, int y, int w, int h) {
+        this.x = x; this.y = y; this.w = w; this.h = h;
     }
 
-    @Override
-    public void actualizarPosicion() {
+    public void setEspacio(Espacio espacio) { this.espacio = espacio; }
+
+    public void actualizar(int dx, int dy) {
+        if (!vivo) return;
+        x += dx; y += dy;
     }
 
-    public void aplicarDesplazamiento(int dx, int dy) {
-        setX(getX() + dx);
-        setY(getY() + dy);
-        if (getObservador() != null) {
-            getObservador().mover(getX(), getY());
-        }
+    public void recibirDanioNave() {
+        if (!vivo) return;
+        vidaActual -= vidaInicial * danioNave;
+        if (vidaActual <= 0) eliminarEnemigo();
     }
 
-    public boolean estaVivo() {
-        return vivo;
+    public void eliminarEnemigo() {
+        vivo = false;
+        if (espacio != null) espacio.quitarEnemigo(this);
     }
 
-    public void recibirDanio(int d) {
-        if (!vivo) {           // si ya está muerto, no hace nada
-            return;
-        }
-        vida -= d;             // descuenta vida
+    public boolean estaVivo() { return vivo; }
+    public float getVidaInicial() { return vidaInicial; }
+    public float getVidaActual() { return vidaActual; }
 
-        if (vida <= 0) {       // si muere
-            vivo = false;      // marca estado lógico muerto
-
-            // si el observador gráfico es un JLabel, lo quita del contenedor
-            if (getObservador() instanceof javax.swing.JLabel lbl) {
-                java.awt.Container p = lbl.getParent();
-                if (p != null) {
-                    p.remove(lbl);   // elimina la IMAGEN del panel
-                    p.revalidate();  // relayout
-                    p.repaint();     // repinta
-                }
-            }
-
-            setObservador(null);     // desconecta el observador del modelo
-            espacio.quitarEnemigo(this); // avisa al Espacio para que lo quite del juego
-        }
-    }
-
-    public boolean toca(int rx, int ry, int rH, int rW) {
-        return colisionaRect(rx, ry, rW, rH, getX(), getY(), w, h);
-    }
-
-    public int getW() {
-        return w;
-    }
-
-    public int getH() {
-        return h;
-    }
+    public Rectangle getBounds() { return new Rectangle(x, y, w, h); }
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public int getW() { return w; }
+    public int getH() { return h; }
 }

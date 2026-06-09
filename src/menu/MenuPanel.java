@@ -9,8 +9,7 @@ public class MenuPanel extends JPanel {
     private JButton btnJugar;
 
     public MenuPanel(Runnable onPlay) {
-    	setPreferredSize(new Dimension(900, 600));
-    	setLayout(null); // colocación libre
+        setLayout(null); // colocación libre
         setBackground(Color.BLACK);
 
         // === Fondo del menú ===
